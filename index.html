@@ -27,9 +27,18 @@
     <button id="signButton" disabled>Sign Message</button>
     <div id="output"></div>
 
-    <!-- Load ethers.js from CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.5/ethers.umd.min.js"></script>
+    <!-- Load ethers.js from Cloudflare CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js" crossorigin="anonymous"></script>
     <script>
+        // Check if ethers and ethers.providers are loaded
+        if (typeof ethers === "undefined") {
+            document.getElementById("output").innerHTML = "Error: ethers.js failed to load.";
+        } else if (typeof ethers.providers === "undefined") {
+            document.getElementById("output").innerHTML = "Error: ethers.providers is not defined.";
+        } else {
+            console.log("ethers.js loaded successfully:", ethers.version);
+        }
+
         // Contract address (replace with your actual contract address)
         const contractAddress = "0x1234567890abcdef1234567890abcdef12345678"; // Dummy value
 
