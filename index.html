@@ -80,7 +80,7 @@
                 const expiredAt = Math.floor(Date.now() / 1000) + 3600;
 
                 // Step 1: Compute msgHash (matches Solidity abi.encode)
-                const msgHash = ethers.utils.keccak256(
+                const msgHash = ethers.utils.solidityKeccak256(
                     ethers.utils.defaultAbiCoder.encode(
                         ["address", "string", "address", "uint256"],
                         [contractAddress, "VerifyAddress", userAddress, 1741682816]
