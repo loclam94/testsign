@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet Connect & Sign Message</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 16px;
+        }
+        #output {
+            margin-top: 20px;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <h1>Connect Wallet & Sign Message</h1>
+    <button id="connectButton">Connect Wallet</button>
+    <button id="signButton" disabled>Sign Message</button>
+    <div id="output"></div>
+
+    <!-- Load ethers.js from CDN -->
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+    <script>
+        // Contract address (replace with your actual contract address)
+        const contractAddress = "0x1234567890abcdef1234567890abcdef12345678"; // Dummy value
+
+        // DOM elements
+        const connectButton = document.getElementById("connectButton");
+        const signButton = document.getElementById("signButton");
+        const output = document.getElementById("output");
+
+        // Ethers provider and signer
+        let provider;
+        let signer;
+        let userAddress;
+
+        // Connect wallet function
+        async function connectWallet() {
+            if (typeof window.ethereum !== "undefined") {
+                try {
+                    // Request account access
+                    await window.ethereum.request({ method: "eth_requestAccounts" });
+                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    signer = provider.getSigner();
+                    userAddress = await signer.getAddress();
+
+                    output.innerHTML = `Connected Address: ${userAddress}`;
+                    connectButton.disabled = true;
+                    signButton.disabled = false;
+                } catch (error) {
+                    output.innerHTML = `Error: ${error.message}`;
+                }
+            } else {
+                output.innerHTML = "Please install MetaMask!";
+            }
+        }
+
+        // Sign message function
+        async function signMessage() {
+            try {
+                // Generate expiredAt (1 hour from now)
+                const expiredAt = Math.floor(Date.now() / 1000) + 3600;
+
+                // Step 1: Compute msgHash (matches Solidity abi.encode)
+                const msgHash = ethers.utils.keccak256(
+                    ethers.utils.defaultAbiCoder.encode(
+                        ["address", "string", "address", "uint256"],
+                        [contractAddress, "VerifyAddress", userAddress, expiredAt]
+                    )
+                );
+
+                // Step 2: Add Ethereum signed message prefix
+                const ethSignedMessageHash = ethers.utils.keccak256(
+                    ethers.utils.concat([
+                        ethers.utils.toUtf8Bytes("\x19Ethereum Signed Message:\n32"),
+                        msgHash
+                    ])
+                );
+
+                // Step 3: Sign the message
+                const signature = await signer.signMessage(ethers.utils.arrayify(ethSignedMessageHash));
+
+                // Output the results
+                output.innerHTML = `
+                    <strong>Connected Address:</strong> ${userAddress}<br>
+                    <strong>Contract Address:</strong> ${contractAddress}<br>
+                    <strong>Expired At:</strong> ${expiredAt}<br>
+                    <strong>Message Hash:</strong> ${msgHash}<br>
+                    <strong>Eth Signed Message Hash:</strong> ${ethSignedMessageHash}<br>
+                    <strong>Signature:</strong> ${signature}
+                `;
+            } catch (error) {
+                output.innerHTML = `Error: ${error.message}`;
+            }
+        }
+
+        // Event listeners
+        connectButton.addEventListener("click", connectWallet);
+        signButton.addEventListener("click", signMessage);
+    </script>
+</body>
+</html>
