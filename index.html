@@ -91,7 +91,7 @@
                 const ethSignedMessageHash = ethers.utils.keccak256(msgHash);
 
                 // Step 3: Sign the message
-                const signature = await signer.signMessage(ethers.utils.arrayify(ethSignedMessageHash));
+                const signature = await signer.signMessage(ethers.utils.arrayify(msgHash));
 
                 // Output the results
                 output.innerHTML = `
