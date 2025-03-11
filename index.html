@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,17 +11,20 @@
             margin: 20px;
             text-align: center;
         }
+
         button {
             padding: 10px 20px;
             margin: 5px;
             font-size: 16px;
         }
+
         #output {
             margin-top: 20px;
             word-wrap: break-word;
         }
     </style>
 </head>
+
 <body>
     <h1>Connect Wallet & Sign Message</h1>
     <button id="connectButton">Connect Wallet</button>
@@ -28,7 +32,8 @@
     <div id="output"></div>
 
     <!-- Load ethers.js from Cloudflare CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"
+        crossorigin="anonymous"></script>
     <script>
         // Check if ethers and ethers.providers are loaded
         if (typeof ethers === "undefined") {
@@ -81,14 +86,12 @@
 
                 // Step 1: Compute msgHash (matches Solidity abi.encode)
                 const msgHash = ethers.utils.solidityKeccak256(
-                    ethers.utils.defaultAbiCoder.encode(
-                        ["address", "string", "address", "uint256"],
-                        [contractAddress, "VerifyAddress", userAddress, 1741682816]
-                    )
+                    ['address', 'string', 'address', 'uint256'],
+                    [contractAddress, "VerifyAddress", userAddress, expiredAt]
                 );
 
                 // Step 2: Add Ethereum signed message prefix
-                const ethSignedMessageHash = ethers.utils.keccak256(msgHash);
+                //const ethSignedMessageHash = ethers.utils.keccak256(msgHash);
 
                 // Step 3: Sign the message
                 const signature = await signer.signMessage(ethers.utils.arrayify(msgHash));
@@ -99,7 +102,7 @@
                     <strong>Contract Address:</strong> ${contractAddress}<br>
                     <strong>Expired At:</strong> ${expiredAt}<br>
                     <strong>Message Hash:</strong> ${msgHash}<br>
-                    <strong>Eth Signed Message Hash:</strong> ${ethSignedMessageHash}<br>
+                    <strong>Eth Signed Message Hash:</strong> ${signature}<br>
                     <strong>Signature:</strong> ${signature}
                 `;
             } catch (error) {
@@ -112,4 +115,5 @@
         signButton.addEventListener("click", signMessage);
     </script>
 </body>
+
 </html>
