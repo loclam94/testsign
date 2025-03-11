@@ -87,7 +87,7 @@
                 // Step 1: Compute msgHash (matches Solidity abi.encode)
                 const msgHash = ethers.utils.solidityKeccak256(
                     ['address', 'string', 'address', 'uint256'],
-                    [contractAddress, "VerifyAddress", userAddress, expiredAt]
+                    [contractAddress, "VerifyAddress", userAddress, 1741682816]
                 );
 
                 // Step 2: Add Ethereum signed message prefix
