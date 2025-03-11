@@ -40,7 +40,7 @@
         }
 
         // Contract address (replace with your actual contract address)
-        const contractAddress = "0x1234567890abcdef1234567890abcdef12345678"; // Dummy value
+        const contractAddress = "0xb330A50d27341730b7B3fD285B150e5742C3b090"; // Dummy value
 
         // DOM elements
         const connectButton = document.getElementById("connectButton");
@@ -83,17 +83,12 @@
                 const msgHash = ethers.utils.keccak256(
                     ethers.utils.defaultAbiCoder.encode(
                         ["address", "string", "address", "uint256"],
-                        [contractAddress, "VerifyAddress", userAddress, expiredAt]
+                        [contractAddress, "VerifyAddress", userAddress, 1741682816]
                     )
                 );
 
                 // Step 2: Add Ethereum signed message prefix
-                const ethSignedMessageHash = ethers.utils.keccak256(
-                    ethers.utils.concat([
-                        ethers.utils.toUtf8Bytes("\x19Ethereum Signed Message:\n32"),
-                        msgHash
-                    ])
-                );
+                const ethSignedMessageHash = ethers.utils.keccak256(msgHash);
 
                 // Step 3: Sign the message
                 const signature = await signer.signMessage(ethers.utils.arrayify(ethSignedMessageHash));
