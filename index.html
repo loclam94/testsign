@@ -21,6 +21,17 @@
         #output {
             margin-top: 20px;
             word-wrap: break-word;
+            text-align: left;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
         }
     </style>
 </head>
@@ -38,8 +49,6 @@
         // Check if ethers is loaded (optional, for utility functions)
         if (typeof ethers === "undefined") {
             document.getElementById("output").innerHTML = "Error: ethers.js failed to load.";
-        } else {
-            console.log("ethers.js loaded successfully:", ethers.version);
         }
 
         // Contract address and chain ID
@@ -65,77 +74,82 @@
                     signer = provider.getSigner();
                     userAddress = await signer.getAddress();
 
-                    output.innerHTML = `Connected Address: ${userAddress}`;
-                    console.log("Connected Address:", userAddress);
+                    output.innerHTML = `<strong>Connected Address:</strong> ${userAddress}`;
                     connectButton.disabled = true;
                     signButton.disabled = false;
                 } catch (error) {
-                    output.innerHTML = `Error: ${error.message}`;
-                    console.error("Connection Error:", error);
+                    output.innerHTML = `<strong>Error:</strong> ${error.message}`;
                 }
             } else {
                 output.innerHTML = "Please install a compatible wallet (e.g., Binance Wallet or MetaMask)!";
             }
         }
 
-        // Sign message function with source inspection
+        // Sign message function with source inspection in HTML
         async function signMessage() {
+            let outputContent = "";
+
+            // Check if binancew3w exists and infer source
             let binanceW3WSourceInfo = "Unable to determine exact source of binancew3w.";
-            
-            // Check if binancew3w exists
             if (typeof window.binancew3w === "undefined") {
                 binanceW3WSourceInfo = "binancew3w not detected. Likely requires Binance Wallet extension.";
-                output.innerHTML = `Error: ${binanceW3WSourceInfo} Please ensure the Binance Wallet is installed.`;
-                console.error(binanceW3WSourceInfo);
+                outputContent = `<strong>Error:</strong> ${binanceW3WSourceInfo}<br>Please ensure the Binance Wallet is installed.`;
+                output.innerHTML = outputContent;
                 return;
             } else {
                 binanceW3WSourceInfo = "binancew3w detected. Likely injected by Binance Wallet extension.";
-                console.log(binanceW3WSourceInfo);
             }
 
-            // Check all script tags for potential source (unlikely to find binancew3w here)
+            // List all script tags in the document
             const scripts = document.getElementsByTagName("script");
-            let scriptSources = "Loaded script tags in document:\n";
+            let scriptSources = "Loaded script tags in document:<br>";
             for (let i = 0; i < scripts.length; i++) {
                 if (scripts[i].src) {
-                    scriptSources += `- ${scripts[i].src}\n`;
+                    scriptSources += `- ${scripts[i].src}<br>`;
                 }
             }
-            console.log(scriptSources);
             binanceW3WSourceInfo += `<br><strong>Document Scripts:</strong><pre>${scriptSources}</pre>`;
             binanceW3WSourceInfo += "<br>Note: binancew3w is typically injected by the Binance Wallet extension, not a script tag.";
 
-            // Log binancew3w.pcs details
-            console.log("window.binancew3w.pcs:", window.binancew3w.pcs);
-            if (window.binancew3w.pcs && window.binancew3w.pcs.sign) {
-                console.log("window.binancew3w.pcs.sign (toString):", window.binancew3w.pcs.sign.toString());
-            } else {
-                binanceW3WSourceInfo += "<br>window.binancew3w.pcs.sign not available.";
+            // Inspect window.binancew3w.pcs
+            let pcsInfo = "Not available";
+            if (window.binancew3w.pcs) {
+                pcsInfo = typeof window.binancew3w.pcs === "object" ? "[Object]" : window.binancew3w.pcs.toString();
             }
+            binanceW3WSourceInfo += `<br><strong>window.binancew3w.pcs:</strong> ${pcsInfo}`;
+
+            // Inspect window.binancew3w.pcs.sign
+            let signInfo = "Not available";
+            if (window.binancew3w.pcs && window.binancew3w.pcs.sign) {
+                signInfo = window.binancew3w.pcs.sign.toString();
+            }
+            binanceW3WSourceInfo += `<br><strong>window.binancew3w.pcs.sign:</strong> <pre>${signInfo}</pre>`;
+
+            outputContent += `<strong>Binance W3W Source Info:</strong> ${binanceW3WSourceInfo}`;
 
             try {
-                // Log inputs for debugging
-                console.log("Signing with parameters:", {
+                // Display signing parameters
+                const params = {
                     binanceChainId: binanceChainId,
                     contractAddress: contractAddress,
                     address: userAddress
-                });
+                };
+                outputContent += `<br><strong>Signing Parameters:</strong> <pre>${JSON.stringify(params, null, 2)}</pre>`;
 
                 // Use window.binancew3w.pcs.sign to sign the message
-                const e = await window.binancew3w.pcs.sign({
-                    binanceChainId: binanceChainId,
-                    contractAddress: contractAddress,
-                    address: userAddress
-                });
+                const e = await window.binancew3w.pcs.sign(params);
 
-                console.log("Response from binancew3w.pcs.sign:", e);
+                // Display the full response
+                outputContent += `<br><strong>Response from binancew3w.pcs.sign:</strong> <pre>${JSON.stringify(e, null, 2)}</pre>`;
 
+                // Check if the signing was successful
                 if (e.code === "351026") {
                     throw new Error("Signing failed: Illegal Address (code 351026). Please verify the address format.");
                 } else if (e.code !== "000000") {
                     throw new Error(`Signing failed with code: ${e.code}`);
                 }
 
+                // Extract signature and expireAt from the response
                 const signature = e.data?.signature || null;
                 const expireAt = e.data?.expireAt || null;
 
@@ -143,6 +157,7 @@
                     throw new Error("No signature returned from binancew3w.pcs.sign");
                 }
 
+                // Check expiration status
                 const currentTimestamp = Math.floor(Date.now() / 1000);
                 let expirationStatus = "";
                 if (expireAt === null) {
@@ -153,8 +168,8 @@
                     expirationStatus = "Signature is still valid";
                 }
 
-                output.innerHTML = `
-                    <strong>Binance W3W Source Info:</strong> ${binanceW3WSourceInfo}
+                // Add signing results to output
+                outputContent += `
                     <br><strong>Connected Address:</strong> ${userAddress}
                     <br><strong>Contract Address:</strong> ${contractAddress}
                     <br><strong>Binance Chain ID:</strong> ${binanceChainId}
@@ -163,12 +178,11 @@
                     <br><strong>Signature:</strong> ${signature}
                 `;
             } catch (error) {
-                output.innerHTML = `
-                    <strong>Binance W3W Source Info:</strong> ${binanceW3WSourceInfo}
-                    <br><strong>Error:</strong> ${error.message}
-                `;
-                console.error("Signing Error:", error);
+                outputContent += `<br><strong>Error:</strong> ${error.message}`;
             }
+
+            // Update the HTML output
+            output.innerHTML = outputContent;
         }
 
         // Event listeners
