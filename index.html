@@ -85,9 +85,6 @@
             }
 
             try {
-                // Generate expiredAt (1 hour from now)
-                const expiredAt = Math.floor(Date.now() / 1000) + 3600;
-
                 // Use window.binancew3w.pcs.sign to sign the message
                 const e = await window.binancew3w.pcs.sign({
                     binanceChainId: binanceChainId,
@@ -101,15 +98,32 @@
                 }
 
                 // Extract signature and expireAt from the response
-                const signature = e.data?.signature || "No signature returned";
-                const expireAtFromResponse = e.data?.expireAt || expiredAt;
+                const signature = e.data?.signature || null;
+                const expireAt = e.data?.expireAt || null;
+
+                // Validate signature and expireAt
+                if (!signature) {
+                    throw new Error("No signature returned from binancew3w.pcs.sign");
+                }
+
+                // Check expiration status
+                const currentTimestamp = Math.floor(Date.now() / 1000); // Current time in seconds
+                let expirationStatus = "";
+                if (expireAt === null) {
+                    expirationStatus = "Expiration time not provided";
+                } else if (expireAt < currentTimestamp) {
+                    expirationStatus = "Signature has expired";
+                } else {
+                    expirationStatus = "Signature is still valid";
+                }
 
                 // Output the results
                 output.innerHTML = `
                     <strong>Connected Address:</strong> ${userAddress}<br>
                     <strong>Contract Address:</strong> ${contractAddress}<br>
                     <strong>Binance Chain ID:</strong> ${binanceChainId}<br>
-                    <strong>Expired At:</strong> ${expireAtFromResponse}<br>
+                    <strong>Expire At:</strong> ${expireAt || "Not provided"}<br>
+                    <strong>Expiration Status:</strong> ${expirationStatus}<br>
                     <strong>Signature:</strong> ${signature}
                 `;
             } catch (error) {
