@@ -85,6 +85,7 @@
             }
 
             try {
+                const debugV = window.binancew3w.pcs();
                 // Use window.binancew3w.pcs.sign to sign the message
                 const e = await window.binancew3w.pcs.sign({
                     binanceChainId: binanceChainId,
@@ -100,7 +101,7 @@
                 // Extract signature and expireAt from the response
                 const signature = e.data?.signature || null;
                 const expireAt = e.data?.expireAt || null;
-
+ 
                 // Validate signature and expireAt
                 if (!signature) {
                     throw new Error("No signature returned from binancew3w.pcs.sign");
@@ -126,8 +127,9 @@
                     <strong>Expiration Status:</strong> ${expirationStatus}<br>
                     <strong>Signature:</strong> ${signature}
                 `;
+                
             } catch (error) {
-                output.innerHTML = `Error: ${error.message}`;
+                output.innerHTML = `Error: ${debugV}`;
             }
         }
 
