@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wallet Connect & Sign Message</title>
+    <title>Wallet Connect & Sign Message with Binance W3W</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -26,42 +26,41 @@
 </head>
 
 <body>
-    <h1>Connect Wallet & Sign Message</h1>
+    <h1>Connect Wallet & Sign Message with Binance W3W</h1>
     <button id="connectButton">Connect Wallet</button>
     <button id="signButton" disabled>Sign Message</button>
     <div id="output"></div>
 
-    <!-- Load ethers.js from Cloudflare CDN -->
+    <!-- Load ethers.js from Cloudflare CDN (optional, kept for utility functions) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"
         crossorigin="anonymous"></script>
     <script>
-        // Check if ethers and ethers.providers are loaded
+        // Check if ethers is loaded (optional, for utility functions)
         if (typeof ethers === "undefined") {
             document.getElementById("output").innerHTML = "Error: ethers.js failed to load.";
-        } else if (typeof ethers.providers === "undefined") {
-            document.getElementById("output").innerHTML = "Error: ethers.providers is not defined.";
         } else {
             console.log("ethers.js loaded successfully:", ethers.version);
         }
 
-        // Contract address (replace with your actual contract address)
+        // Contract address and chain ID
         const contractAddress = "0xb330A50d27341730b7B3fD285B150e5742C3b090"; // Dummy value
+        const binanceChainId = "56"; // Binance Smart Chain Mainnet chain ID
 
         // DOM elements
         const connectButton = document.getElementById("connectButton");
         const signButton = document.getElementById("signButton");
         const output = document.getElementById("output");
 
-        // Ethers provider and signer
+        // Variables
         let provider;
         let signer;
         let userAddress;
 
-        // Connect wallet function
+        // Connect wallet function (using window.ethereum for compatibility)
         async function connectWallet() {
             if (typeof window.ethereum !== "undefined") {
                 try {
-                    // Request account access
+                    // Request account access (assumes Binance Wallet supports eth_requestAccounts)
                     await window.ethereum.request({ method: "eth_requestAccounts" });
                     provider = new ethers.providers.Web3Provider(window.ethereum);
                     signer = provider.getSigner();
@@ -74,35 +73,43 @@
                     output.innerHTML = `Error: ${error.message}`;
                 }
             } else {
-                output.innerHTML = "Please install MetaMask!";
+                output.innerHTML = "Please install a compatible wallet (e.g., Binance Wallet or MetaMask)!";
             }
         }
 
-        // Sign message function
+        // Sign message function using window.binancew3w.pcs.sign
         async function signMessage() {
+            if (typeof window.binancew3w === "undefined" || !window.binancew3w.pcs || !window.binancew3w.pcs.sign) {
+                output.innerHTML = "Error: Binance Web3 Wallet (binancew3w) is not available. Please ensure the Binance Wallet is installed.";
+                return;
+            }
+
             try {
                 // Generate expiredAt (1 hour from now)
                 const expiredAt = Math.floor(Date.now() / 1000) + 3600;
 
-                // Step 1: Compute msgHash (matches Solidity abi.encode)
-                const msgHash = ethers.utils.solidityKeccak256(
-                    ['address', 'string', 'address', 'uint256'],
-                    [contractAddress, "VerifyAddress", userAddress, 1741682816]
-                );
+                // Use window.binancew3w.pcs.sign to sign the message
+                const e = await window.binancew3w.pcs.sign({
+                    binanceChainId: binanceChainId,
+                    contractAddress: contractAddress,
+                    address: userAddress
+                });
 
-                // Step 2: Add Ethereum signed message prefix
-                //const ethSignedMessageHash = ethers.utils.keccak256(msgHash);
+                // Check if the signing was successful
+                if (e.code !== "000000") {
+                    throw new Error(`Signing failed with code: ${e.code}`);
+                }
 
-                // Step 3: Sign the message
-                const signature = await signer.signMessage(ethers.utils.arrayify("0x0b8b68cc4989a9c1cb3d0cf7b2bb56802fb2a3e2b209bc05e1f4f4913d391cea"));
+                // Extract signature and expireAt from the response
+                const signature = e.data?.signature || "No signature returned";
+                const expireAtFromResponse = e.data?.expireAt || expiredAt;
 
                 // Output the results
                 output.innerHTML = `
                     <strong>Connected Address:</strong> ${userAddress}<br>
                     <strong>Contract Address:</strong> ${contractAddress}<br>
-                    <strong>Expired At:</strong> ${expiredAt}<br>
-                    <strong>Message Hash:</strong> ${msgHash}<br>
-                    <strong>Eth Signed Message Hash:</strong> ${signature}<br>
+                    <strong>Binance Chain ID:</strong> ${binanceChainId}<br>
+                    <strong>Expired At:</strong> ${expireAtFromResponse}<br>
                     <strong>Signature:</strong> ${signature}
                 `;
             } catch (error) {
