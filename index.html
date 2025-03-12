@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wallet Connect & Inspect Binance W3W</title>
+    <title>Wallet Connect & Inspect Binance W3W Source</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -26,7 +26,7 @@
 </head>
 
 <body>
-    <h1>Connect Wallet & Inspect Binance W3W</h1>
+    <h1>Connect Wallet & Inspect Binance W3W Source</h1>
     <button id="connectButton">Connect Wallet</button>
     <button id="signButton" disabled>Sign Message</button>
     <div id="output"></div>
@@ -78,29 +78,42 @@
             }
         }
 
-        // Sign message function with debugging
+        // Sign message function with source inspection
         async function signMessage() {
+            let binanceW3WSourceInfo = "Unable to determine exact source of binancew3w.";
+            
+            // Check if binancew3w exists
             if (typeof window.binancew3w === "undefined") {
-                output.innerHTML = "Error: Binance Web3 Wallet (binancew3w) is not available. Please ensure the Binance Wallet is installed.";
-                console.error("Binance W3W not detected");
+                binanceW3WSourceInfo = "binancew3w not detected. Likely requires Binance Wallet extension.";
+                output.innerHTML = `Error: ${binanceW3WSourceInfo} Please ensure the Binance Wallet is installed.`;
+                console.error(binanceW3WSourceInfo);
                 return;
+            } else {
+                binanceW3WSourceInfo = "binancew3w detected. Likely injected by Binance Wallet extension.";
+                console.log(binanceW3WSourceInfo);
+            }
+
+            // Check all script tags for potential source (unlikely to find binancew3w here)
+            const scripts = document.getElementsByTagName("script");
+            let scriptSources = "Loaded script tags in document:\n";
+            for (let i = 0; i < scripts.length; i++) {
+                if (scripts[i].src) {
+                    scriptSources += `- ${scripts[i].src}\n`;
+                }
+            }
+            console.log(scriptSources);
+            binanceW3WSourceInfo += `<br><strong>Document Scripts:</strong><pre>${scriptSources}</pre>`;
+            binanceW3WSourceInfo += "<br>Note: binancew3w is typically injected by the Binance Wallet extension, not a script tag.";
+
+            // Log binancew3w.pcs details
+            console.log("window.binancew3w.pcs:", window.binancew3w.pcs);
+            if (window.binancew3w.pcs && window.binancew3w.pcs.sign) {
+                console.log("window.binancew3w.pcs.sign (toString):", window.binancew3w.pcs.sign.toString());
+            } else {
+                binanceW3WSourceInfo += "<br>window.binancew3w.pcs.sign not available.";
             }
 
             try {
-                // Print window.binancew3w.pcs details
-                console.log("window.binancew3w.pcs:", window.binancew3w.pcs);
-                output.innerHTML += `<br><strong>window.binancew3w.pcs:</strong> ${typeof window.binancew3w.pcs === 'object' ? '[Object]' : window.binancew3w.pcs}`;
-
-                // Try to print the source of window.binancew3w.pcs.sign
-                if (window.binancew3w.pcs && window.binancew3w.pcs.sign) {
-                    console.log("window.binancew3w.pcs.sign (toString):", window.binancew3w.pcs.sign.toString());
-                    console.log("window.binancew3w.pcs.sign (raw):", window.binancew3w.pcs.sign);
-                    output.innerHTML += `<br><strong>window.binancew3w.pcs.sign (toString):</strong> ${window.binancew3w.pcs.sign.toString()}`;
-                } else {
-                    output.innerHTML += `<br><strong>window.binancew3w.pcs.sign:</strong> Not available`;
-                    console.log("window.binancew3w.pcs.sign is not defined");
-                }
-
                 // Log inputs for debugging
                 console.log("Signing with parameters:", {
                     binanceChainId: binanceChainId,
@@ -115,26 +128,21 @@
                     address: userAddress
                 });
 
-                // Log the full response for debugging
                 console.log("Response from binancew3w.pcs.sign:", e);
 
-                // Check if the signing was successful
                 if (e.code === "351026") {
                     throw new Error("Signing failed: Illegal Address (code 351026). Please verify the address format.");
                 } else if (e.code !== "000000") {
                     throw new Error(`Signing failed with code: ${e.code}`);
                 }
 
-                // Extract signature and expireAt from the response
                 const signature = e.data?.signature || null;
                 const expireAt = e.data?.expireAt || null;
 
-                // Validate signature
                 if (!signature) {
                     throw new Error("No signature returned from binancew3w.pcs.sign");
                 }
 
-                // Check expiration status
                 const currentTimestamp = Math.floor(Date.now() / 1000);
                 let expirationStatus = "";
                 if (expireAt === null) {
@@ -145,8 +153,8 @@
                     expirationStatus = "Signature is still valid";
                 }
 
-                // Output the results
-                output.innerHTML += `
+                output.innerHTML = `
+                    <strong>Binance W3W Source Info:</strong> ${binanceW3WSourceInfo}
                     <br><strong>Connected Address:</strong> ${userAddress}
                     <br><strong>Contract Address:</strong> ${contractAddress}
                     <br><strong>Binance Chain ID:</strong> ${binanceChainId}
@@ -155,7 +163,10 @@
                     <br><strong>Signature:</strong> ${signature}
                 `;
             } catch (error) {
-                output.innerHTML += `<br><strong>Error:</strong> ${error.message}`;
+                output.innerHTML = `
+                    <strong>Binance W3W Source Info:</strong> ${binanceW3WSourceInfo}
+                    <br><strong>Error:</strong> ${error.message}
+                `;
                 console.error("Signing Error:", error);
             }
         }
