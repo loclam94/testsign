@@ -52,7 +52,7 @@
         }
 
         // Contract address and chain ID
-        const contractAddress = "0xb330A50d27341730b7B3fD285B150e5742C3b090"; // Dummy value
+        const contractAddress = "0x2b1cafd7ad06a548b13e2cfcac4775fc4c3891ac"; // Dummy value
         const binanceChainId = "56"; // Binance Smart Chain Mainnet chain ID
 
         // DOM elements
@@ -72,7 +72,7 @@
                     await window.ethereum.request({ method: "eth_requestAccounts" });
                     provider = new ethers.providers.Web3Provider(window.ethereum);
                     signer = provider.getSigner();
-                    userAddress = "0x75C9AB32da0aBf7833639f1CEc16db28c0bFf861";
+                    userAddress = "0x2bc556715e07D2d814831E118c5aFCfee0E83838";
 
                     output.innerHTML = `<strong>Connected Address:</strong> ${userAddress}`;
                     connectButton.disabled = true;
