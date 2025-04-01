@@ -72,7 +72,7 @@
                     await window.ethereum.request({ method: "eth_requestAccounts" });
                     provider = new ethers.providers.Web3Provider(window.ethereum);
                     signer = provider.getSigner();
-                    userAddress = "0x2bc556715e07D2d814831E118c5aFCfee0E83838";
+                    userAddress = "0x7Ea0b0C9FC05b281E517C92492684aa7F61d403d";
 
                     output.innerHTML = `<strong>Connected Address:</strong> ${userAddress}`;
                     connectButton.disabled = true;
