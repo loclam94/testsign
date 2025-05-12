@@ -1,0 +1,16 @@
+{
+  "name": "testsign",
+  "version": "1.0.0",
+  "description": "A simple app that listens for requests at /email and saves data to code.txt.",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "keywords": [],
+  "author": "loclam94",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "body-parser": "^1.20.2"
+  }
+}
